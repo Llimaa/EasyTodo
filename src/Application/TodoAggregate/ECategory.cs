@@ -1,6 +1,6 @@
 namespace Application.TodoAggregate;
 
-public enum Type
+public enum ECategory
 {
     Work,
     Study,

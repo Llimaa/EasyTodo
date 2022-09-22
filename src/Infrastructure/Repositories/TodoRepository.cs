@@ -1,4 +1,3 @@
-using System.Data;
 using Application.TodoAggregate;
 using Dapper;
 using Infrastructure.Context;
@@ -34,6 +33,18 @@ public class TodoRepository : ITodoRepository
 
         return response;
     }
+
+    public async Task<IEnumerable<Todo>> GetAllByType(ECategory category)
+    {
+        var query = "SELECT * FROM Todo WHERE Category = @Category";
+        using var dbConnection = dbContext.GetCon();
+        dbConnection.Open();
+
+        var response = await dbConnection.QueryAsync<Todo>(query, new { Category = category });
+        return response;
+    }
+
+
 
     public async Task<Todo> GetById(Guid id)
     {
