@@ -1,3 +1,4 @@
+using Application.Queries;
 using Application.TodoAggregate;
 using Infrastructure;
 using Infrastructure.Config;
@@ -11,11 +12,12 @@ public static class AddTodoDatabase
 {
     public static void AddTodo(this IServiceCollection services, IConfiguration config) 
     {
-        services.Configure<ITodoDbConfig>(config.GetSection(nameof(TodoDbConfig)));
+        services.Configure<TodoDbConfig>(config.GetSection(nameof(TodoDbConfig)));
         services.AddTransient<ITodoDbConfig, TodoDbConfig>(_ => 
         _.GetRequiredService<IOptions<TodoDbConfig>>().Value);
 
         services.AddSingleton<ITodoDbContext, TodoDbContext>();
-        services.AddSingleton<ITodoRepository, TodoRepository>();
+        services.AddTransient<ITodoRepository, TodoRepository>();
+        services.AddTransient<ISearchTodoRepository, SearchTodoRepository>();
     }
 }
