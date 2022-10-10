@@ -2,14 +2,14 @@ namespace Application.TodoAggregate;
 
 public class Todo
 {
-    public Todo(string? title, string? description, Type? type)
+    public Todo(string? title, string? description, ECategory? category)
     {
         Id = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = null;
         Title = title;
         Description = description;
-        Type = type;
+        Category = category;
         Status = Status.Create;
     }
 
@@ -18,7 +18,7 @@ public class Todo
     public DateTime? UpdatedAt { get; private set; }
     public string? Title { get; private set; }
     public string? Description { get; private set; }
-    public Type? Type { get; private set; }
+    public ECategory? Category { get; private set; }
     public Status Status { get; private set; }
 
 
@@ -32,15 +32,25 @@ public class Todo
         }
     }
 
-    public void UpdateType(Type type)
+    public void UpdateCategory(ECategory category)
     {
-        if (Status != Status.Finish)
-            Type = type;
+        if (Status != Status.Finish) {
+            UpdatedAt = DateTime.UtcNow;
+            Category = category;
+        }
     }
 
     public void UpdateStatus()
     {
-        if (Status != Status.Executed && Status != Status.Finish)
+        if (Status != Status.Executed && Status != Status.Finish) {
+            UpdatedAt = DateTime.UtcNow;
             Status = Status;
+        }
+    }
+
+    public static Todo BindingToTodo(TodoRequestRaise todoRequest) 
+    {
+        var instantiate = new Todo(todoRequest.Title, todoRequest.Description, todoRequest.Category);
+        return instantiate;
     }
 }
