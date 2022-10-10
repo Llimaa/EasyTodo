@@ -2,11 +2,7 @@ namespace Application.TodoAggregate;
 
 public interface ITodoRepository
 {
-    Task Raise(Todo todo);
-    Task Update(Todo todo);
-    Task<Todo> GetById(Guid id);
-    Task<IEnumerable<Todo>> GetAll();
-    Task<IEnumerable<Todo>> GetAllByMonth(DateOnly date);
-    Task<IEnumerable<Todo>> GetAllByType(ECategory category);
+    Task<Guid> Raise(Todo todo);
+    Task Update(TodoRequestUpdate todo);
     Task Remove(Guid id);
 }
