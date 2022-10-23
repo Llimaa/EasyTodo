@@ -1,5 +1,8 @@
+using Application.ErrorBag;
 using Application.Queries;
 using Application.TodoAggregate;
+using Application.TodoAggregate.Request;
+using FluentValidation;
 using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,11 +15,23 @@ public class TodoController: ControllerBase
     private readonly ITodoRepository todoRepository;
     private readonly ITodoDbContext todoDbContext;
     private readonly ISearchTodoRepository searchTodoRepository;
-    public TodoController(ITodoRepository todoRepository, ISearchTodoRepository searchTodoRepository,ITodoDbContext todoDbContext)
-    {
+    private readonly IValidator<TodoRaiseRequest> validatorRaiseRequest;
+    private readonly IErrorBagHandler errorBag;
+    private readonly IValidator<TodoUpdateRequest> validatorUpdateRequest;
+    public TodoController(
+        ITodoRepository todoRepository,
+        ISearchTodoRepository searchTodoRepository,
+        ITodoDbContext todoDbContext,
+        IValidator<TodoRaiseRequest> validatorRaiseRequest,
+        IValidator<TodoUpdateRequest> validatorUpdateRequest,
+        IErrorBagHandler errorBag
+    ){
         this.todoRepository = todoRepository;      
         this.searchTodoRepository = searchTodoRepository;
-        this.todoDbContext = todoDbContext;     
+        this.todoDbContext = todoDbContext;
+        this.validatorUpdateRequest = validatorUpdateRequest;
+        this.validatorRaiseRequest = validatorRaiseRequest;
+        this.errorBag = errorBag;
     }
 
     [HttpGet()]
@@ -32,14 +47,7 @@ public class TodoController: ControllerBase
     {
         return Ok(await searchTodoRepository.GetById(id));
     }
-
-    [HttpGet("/{date}")]
-    [ProducesResponseType(200, Type = typeof(IEnumerable<SearchTodoResponse>))]
-    public async Task<IActionResult> GetByDate(DateTime date) 
-    {
-        return Ok(await searchTodoRepository.GetAllByDate(date));
-    }
-
+    
     [HttpGet("/{category:int}")]
     [ProducesResponseType(200, Type = typeof(IEnumerable<SearchTodoResponse>))]
     public async Task<IActionResult> GetByCategory(ECategory category) 
@@ -49,8 +57,9 @@ public class TodoController: ControllerBase
 
     [HttpPost()]
     [ProducesResponseType(204, Type = typeof(Guid))]
-    public async Task<IActionResult> Raise([FromBody] TodoRequestRaise todoRequest) 
+    public async Task<IActionResult> Raise([FromBody] TodoRaiseRequest todoRequest) 
     {
+        todoRequest.Validate(validatorRaiseRequest, errorBag);
         try
         {
             await todoDbContext.StartTransactionAsync();
@@ -68,12 +77,13 @@ public class TodoController: ControllerBase
 
     [HttpPut("{id}")]
     [ProducesResponseType(204)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] TodoRequestUpdate todoRequestUpdate) 
+    public async Task<IActionResult> Update(Guid id, [FromBody] TodoUpdateRequest todoRequest) 
     {
+        todoRequest.Validate(validatorUpdateRequest, errorBag);
         try
         {
             await todoDbContext.StartTransactionAsync();
-            await todoRepository.Update(todoRequestUpdate, id);
+            await todoRepository.Update(todoRequest, id);
             await todoDbContext.CommitTransactionAsync();
 
             return NoContent();

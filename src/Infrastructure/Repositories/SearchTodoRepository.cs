@@ -58,25 +58,6 @@ public class SearchTodoRepository : ISearchTodoRepository
         return items;
     }
 
-    public async Task<IEnumerable<SearchTodoResponse>> GetAllByDate(DateTime date)
-    {
-        var builderFilter = Builders<Todo>.Filter;
-        var filter = builderFilter.Gte(_ => _.CreatedAt, date);
-
-        var items = await collection 
-            .Aggregate()
-            .Match(filter)
-            .Project<SearchTodoResponse>(new BsonDocument {
-                { nameof(SearchTodoResponse.Id), "$_id"},
-                { nameof(SearchTodoResponse.Title), $"${nameof(Todo.Title)}" },
-                { nameof(SearchTodoResponse.Description), $"${nameof(Todo.Description)}" },
-                { nameof(SearchTodoResponse.Category), $"${nameof(Todo.Category)}" },
-                { nameof(SearchTodoResponse.Status), $"${nameof(Todo.Status)}" }
-            }).ToListAsync();
-
-        return items;
-    }
-
     public async Task<SearchTodoResponse> GetById(Guid id)
     {
         var builderFilter = Builders<Todo>.Filter;

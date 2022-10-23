@@ -53,7 +53,7 @@ public class TodoRepository : ITodoRepository
         }
     }
 
-    public async Task Update(TodoRequestUpdate todo, Guid id)
+    public async Task Update(TodoUpdateRequest todo, Guid id)
     {
         if(context.CurrentSession is null)
             logger.LogError("Todo can't be update without session scope");

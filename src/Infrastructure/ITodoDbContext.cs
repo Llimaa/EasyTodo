@@ -1,4 +1,3 @@
-using Infrastructure.Config;
 using MongoDB.Driver;
 
 namespace Infrastructure;

@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Enums.Net" Version="4.0.0" />
+    <PackageReference Include="FluentValidation" Version="11.2.2" />
+  </ItemGroup>
+
 </Project>
