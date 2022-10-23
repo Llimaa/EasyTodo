@@ -18,18 +18,65 @@ public class TodoRepository : ITodoRepository
         this.logger = logger;
     }
 
-    public Task<Guid>  Raise(Todo todo)
+    public async Task<Guid?>  Raise(Todo todo)
     {
-        throw new NotImplementedException();
+        try
+        {
+            if(context.CurrentSession is null)
+            {
+                logger.LogError("Todo can't be insert without session scope");
+                return null;
+            }
+
+            await collection.InsertOneAsync(todo).ConfigureAwait(false);
+            return todo.Id;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError("Error trying to insert one todo, message: {message} at:{now} ", exception.Message, DateTime.UtcNow);
+            return null;
+        }
     }
 
-    public Task Remove(Guid id)
+    public async Task Remove(Guid id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            if(context.CurrentSession is null)
+                logger.LogError("Todo can't be remove without session scope");
+
+            await collection.DeleteOneAsync(_ => _.Id == id).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError("Error trying to remove one todo, message: {message} at:{now} ", exception.Message, DateTime.UtcNow);
+        }
     }
 
-    public Task Update(TodoRequestUpdate todo)
+    public async Task Update(TodoRequestUpdate todo, Guid id)
     {
-        throw new NotImplementedException();
+        if(context.CurrentSession is null)
+            logger.LogError("Todo can't be update without session scope");
+
+        var filterBuilder = Builders<Todo>.Filter;
+        var updateBuilder = Builders<Todo>.Update;
+
+        var filter = filterBuilder.Eq(definition => definition.Id, id);
+        var update = updateBuilder
+            .SetOnInsert(definition => definition.Title, todo.Title)
+            .SetOnInsert(definition => definition.Description, todo.Description)
+            .SetOnInsert(definition => definition.Category, todo.Category)
+            .SetOnInsert(definition => definition.Status, todo.Status);
+        
+        var updateDocument = new UpdateOneModel<Todo>(filter, update) { IsUpsert = true } ;
+        
+        try
+        {
+            await collection.UpdateOneAsync(filter, update).ConfigureAwait(false);
+        } 
+        catch(Exception exception) 
+        {
+            logger.LogError("Error Trying to update one todo, message: {message} at: {at} ", exception.Message, DateTime.UtcNow);
+        }
     }
 }

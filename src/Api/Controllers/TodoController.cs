@@ -1,5 +1,6 @@
 using Application.Queries;
 using Application.TodoAggregate;
+using Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -9,11 +10,13 @@ namespace Api.Controllers;
 public class TodoController: ControllerBase 
 {
     private readonly ITodoRepository todoRepository;
+    private readonly ITodoDbContext todoDbContext;
     private readonly ISearchTodoRepository searchTodoRepository;
-    public TodoController(ITodoRepository todoRepository, ISearchTodoRepository searchTodoRepository)
+    public TodoController(ITodoRepository todoRepository, ISearchTodoRepository searchTodoRepository,ITodoDbContext todoDbContext)
     {
         this.todoRepository = todoRepository;      
-        this.searchTodoRepository = searchTodoRepository;      
+        this.searchTodoRepository = searchTodoRepository;
+        this.todoDbContext = todoDbContext;     
     }
 
     [HttpGet()]
@@ -32,9 +35,9 @@ public class TodoController: ControllerBase
 
     [HttpGet("/{date}")]
     [ProducesResponseType(200, Type = typeof(IEnumerable<SearchTodoResponse>))]
-    public async Task<IActionResult> GetByDate(string date) 
+    public async Task<IActionResult> GetByDate(DateTime date) 
     {
-        return Ok(await searchTodoRepository.GetAllByDate(DateOnly.Parse(date)));
+        return Ok(await searchTodoRepository.GetAllByDate(date));
     }
 
     [HttpGet("/{category:int}")]
@@ -48,22 +51,54 @@ public class TodoController: ControllerBase
     [ProducesResponseType(204, Type = typeof(Guid))]
     public async Task<IActionResult> Raise([FromBody] TodoRequestRaise todoRequest) 
     {
-        var id = await todoRepository.Raise(Todo.BindingToTodo(todoRequest));
-        return CreatedAtAction(nameof(GetById), new {Id = id}, todoRequest);
+        try
+        {
+            await todoDbContext.StartTransactionAsync();
+            var id = await todoRepository.Raise(Todo.BindingToTodo(todoRequest));
+            await todoDbContext.CommitTransactionAsync();
+
+            return CreatedAtAction(nameof(GetById), new {Id = id}, todoRequest);
+        }
+        catch
+        {
+            await todoDbContext.AbortTransactionAsync();
+            return BadRequest();
+        }
     }
 
     [HttpPut("{id}")]
     [ProducesResponseType(204)]
     public async Task<IActionResult> Update(Guid id, [FromBody] TodoRequestUpdate todoRequestUpdate) 
     {
-        await todoRepository.Update(todoRequestUpdate);
-        return NoContent();
+        try
+        {
+            await todoDbContext.StartTransactionAsync();
+            await todoRepository.Update(todoRequestUpdate, id);
+            await todoDbContext.CommitTransactionAsync();
+
+            return NoContent();
+        }
+        catch
+        {
+            await todoDbContext.AbortTransactionAsync();
+            return BadRequest();
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id) 
     {
-        await todoRepository.Remove(id);
-        return NoContent();
+        try
+        {
+            await todoDbContext.StartTransactionAsync();
+            await todoRepository.Remove(id);
+            await todoDbContext.CommitTransactionAsync();
+            return NoContent();
+        }
+        catch
+        {
+            await todoDbContext.AbortTransactionAsync();
+            return BadRequest();
+        }
     }
 }
