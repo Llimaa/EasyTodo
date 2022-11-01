@@ -28,6 +28,7 @@ public class TodoDbContext : ITodoDbContext
     private void SetUpConventions()
     {
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+        BsonSerializer.RegisterSerializer(new DecimalSerializer(BsonType.Decimal128));
         MongoDefaults.GuidRepresentation = MongoDB.Bson.GuidRepresentation.Standard;
         
         var pack = new ConventionPack
