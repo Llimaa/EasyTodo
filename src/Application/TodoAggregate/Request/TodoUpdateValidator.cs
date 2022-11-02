@@ -25,7 +25,6 @@ public class TodoUpdateValidator: AbstractValidator<TodoUpdateRequest>
         
         RuleFor(_ => _.Status)
             .NotEmpty()
-            .NotNull()
             .WithErrorCode(TodoUpdateValidatorError.Todo_Status_Is_Required.AsString())
             .WithMessage(TodoUpdateValidatorError.Todo_Status_Is_Required.AsString(EnumFormat.Description));
     }

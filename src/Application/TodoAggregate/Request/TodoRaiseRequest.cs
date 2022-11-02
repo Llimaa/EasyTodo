@@ -6,6 +6,13 @@ namespace Application.TodoAggregate.Request;
 
 public class TodoRaiseRequest
 {
+    public TodoRaiseRequest(string? title, string? description, ECategory? category)
+    {
+        Title = title;
+        Description = description;
+        Category = category;
+    }
+
     public string? Title { get; set; }
     public string? Description { get; set; }
     public ECategory? Category { get; set; }
@@ -17,7 +24,7 @@ public class TodoRaiseRequest
     {
         var (errors, valid) = validator.Validate(this);
         Errors = errors.AsDefaultFormat();
-        if(Errors is not null)
+        if(Errors.Count > 0)
             errorHandler.HandlerError(Errors);
         Valid = valid;
     }

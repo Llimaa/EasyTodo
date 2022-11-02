@@ -16,8 +16,8 @@ public class TodoController: ControllerBase
     private readonly ITodoDbContext todoDbContext;
     private readonly ISearchTodoRepository searchTodoRepository;
     private readonly IValidator<TodoRaiseRequest> validatorRaiseRequest;
-    private readonly IErrorBagHandler errorBag;
     private readonly IValidator<TodoUpdateRequest> validatorUpdateRequest;
+    private readonly IErrorBagHandler errorBag;
     public TodoController(
         ITodoRepository todoRepository,
         ISearchTodoRepository searchTodoRepository,
@@ -43,12 +43,12 @@ public class TodoController: ControllerBase
 
     [HttpGet("/{id:Guid}")]
     [ProducesResponseType(200, Type = typeof(SearchTodoResponse))]
-    public async Task<IActionResult> GetById(Guid id) 
+        public async Task<IActionResult> GetById(Guid id) 
     {
         return Ok(await searchTodoRepository.GetById(id));
     }
     
-    [HttpGet("/{category:int}")]
+    [HttpGet("/{category}")]
     [ProducesResponseType(200, Type = typeof(IEnumerable<SearchTodoResponse>))]
     public async Task<IActionResult> GetByCategory(ECategory category) 
     {

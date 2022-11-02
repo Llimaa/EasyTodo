@@ -58,15 +58,14 @@ public class TodoRepository : ITodoRepository
         if(context.CurrentSession is null)
             logger.LogError("Todo can't be update without session scope");
 
-        var filterBuilder = Builders<Todo>.Filter;
+        var builderFilter = Builders<Todo>.Filter;
         var updateBuilder = Builders<Todo>.Update;
-
-        var filter = filterBuilder.Eq(definition => definition.Id, id);
+        var filter = builderFilter.Eq(_ => _.Id, id);
         var update = updateBuilder
-            .SetOnInsert(definition => definition.Title, todo.Title)
-            .SetOnInsert(definition => definition.Description, todo.Description)
-            .SetOnInsert(definition => definition.Category, todo.Category)
-            .SetOnInsert(definition => definition.Status, todo.Status);
+            .Set(definition => definition.Title, todo.Title)
+            .Set(definition => definition.Description, todo.Description)
+            .Set(definition => definition.Category, todo.Category)
+            .Set(definition => definition.Status, todo.Status);
         
         var updateDocument = new UpdateOneModel<Todo>(filter, update) { IsUpsert = true } ;
         
