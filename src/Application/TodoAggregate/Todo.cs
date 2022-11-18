@@ -7,7 +7,7 @@ public class Todo
     private Todo(string? title, string? description, ECategory? category)
     {
         Id = Guid.NewGuid();
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = DateTime.Now;
         UpdatedAt = null;
         Title = title;
         Description = description;
